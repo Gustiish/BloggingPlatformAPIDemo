@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using System.Reflection.Metadata.Ecma335;
+using StackExchange.Redis;
 
 namespace BloggingPlatformAPIDemo
 {
@@ -9,6 +10,9 @@ namespace BloggingPlatformAPIDemo
         {
             WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
             var app = builder.Build();
+
+            var redis = ConnectionMultiplexer.Connect("localhost:6379");
+            var db = redis.GetDatabase();
 
             app.MapGet("/blog", async (HttpRequest req) =>
             {
@@ -123,6 +127,19 @@ namespace BloggingPlatformAPIDemo
                 {
                     return Results.NotFound("Blog not found");
                 }
+            });
+
+            //Redis test
+            app.MapGet("/redis", async () =>
+            {
+                string testKey = "testKey";
+                string testValue = "Hello from Redis";
+
+                await db.StringSetAsync(testKey, testValue);
+
+                string? value = await db.StringGetAsync(testKey);
+
+                return Results.Ok(value);
             });
 
 
