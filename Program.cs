@@ -1,4 +1,4 @@
-using StackExchange.Redis;
+
 
 namespace BloggingPlatformAPIDemo
 {
@@ -9,10 +9,8 @@ namespace BloggingPlatformAPIDemo
             WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
             var app = builder.Build();
 
-            var redis = ConnectionMultiplexer.Connect("localhost:6379");
-            var db = redis.GetDatabase();
 
-            app.MapGet("/blog", async (HttpRequest req) =>
+            app.MapGet("/post", async (HttpRequest req) =>
             {
                 var idString = req.Query["id"];
                 if (int.TryParse(idString, out var id))
@@ -30,7 +28,7 @@ namespace BloggingPlatformAPIDemo
                 }
             });
 
-            app.MapPost("/blog", async (HttpRequest req) =>
+            app.MapPost("/post", async (HttpRequest req) =>
             {
                 try
                 {
@@ -42,11 +40,9 @@ namespace BloggingPlatformAPIDemo
                 {
                     return Results.Problem();
                 }
-
-
             });
 
-            app.MapDelete("/blog", async (HttpRequest req) =>
+            app.MapDelete("/post", async (HttpRequest req) =>
             {
                 var idString = req.Query["id"];
                 if (int.TryParse(idString, out var id))
@@ -61,8 +57,6 @@ namespace BloggingPlatformAPIDemo
                         BlogService.DeletePost(blog);
                         return Results.Ok($"The blog {blog.Id} was deleted");
                     }
-
-
                 }
                 else
                 {
@@ -70,7 +64,7 @@ namespace BloggingPlatformAPIDemo
                 }
             });
 
-            app.MapPut("/blog", async (HttpRequest req) =>
+            app.MapPut("/post", async (HttpRequest req) =>
             {
                 var idString = req.Query["id"];
                 if (int.TryParse(idString, out var id))
@@ -88,6 +82,7 @@ namespace BloggingPlatformAPIDemo
 
                     existingBlog.Title = updatedBlog.Title;
                     existingBlog.Content = updatedBlog.Content;
+                    existingBlog.Tags = updatedBlog.Tags;
                     BlogService.UpdatePost(existingBlog);
                     return Results.Ok(existingBlog);
                 }
@@ -99,7 +94,7 @@ namespace BloggingPlatformAPIDemo
 
             });
 
-            app.MapPatch("/blog", async (HttpRequest req) =>
+            app.MapPatch("/post", async (HttpRequest req) =>
             {
                 var idString = req.Query["id"];
                 if (int.TryParse(idString, out int id))
@@ -159,20 +154,9 @@ namespace BloggingPlatformAPIDemo
 
             });
 
-            //Redis test
-            app.MapGet("/redis", async () =>
-            {
-                string testKey = "testKey";
-                string testValue = "Hello from Redis";
 
-                await db.StringSetAsync(testKey, testValue);
-
-                string? value = await db.StringGetAsync(testKey);
-
-                return Results.Ok(value);
-            });
-
-
+            BlogService.LoadData();
+            BlogService.LoadNextId();
 
             app.Run();
 
