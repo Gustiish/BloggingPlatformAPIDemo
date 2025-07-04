@@ -4,9 +4,10 @@
     {
         public static List<Blog> _blogList = new List<Blog>();
         private static int nextId = 1;
-        public static Blog CreatePost(string title, string content)
+
+        public static Blog CreatePost(string title, string content, string[] tags)
         {
-            Blog blog = new Blog(nextId++, title, content);
+            Blog blog = new Blog(nextId++, title, content, tags);
             _blogList.Add(blog);
             return blog;
         }
@@ -34,6 +35,12 @@
             {
                 _blogList[index] = blog;
             }
+        }
+
+        public static List<Blog> GetByTag(string tag)
+        {
+            var posts = _blogList.Where(blog => blog.Tags.Contains(tag)).ToList();
+            return posts;
         }
 
     }

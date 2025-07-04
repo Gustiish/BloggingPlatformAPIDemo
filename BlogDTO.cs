@@ -1,21 +1,28 @@
-﻿namespace BloggingPlatformAPIDemo
+﻿using System.Text.Json.Serialization;
+
+namespace BloggingPlatformAPIDemo
 {
     public class BlogDTO
     {
-        public string? Title { get; set; }
-        public string? Content { get; set; }
+        [JsonPropertyName("title")]
+        public string Title { get; set; }
+        [JsonPropertyName("content")]
+        public string Content { get; set; }
+        [JsonPropertyName("tags")]
+        public string[] Tags { get; set; }
 
-        public BlogDTO(string title, string content)
+        public BlogDTO(string title, string content, string[] tags)
         {
             Title = title;
             Content = content;
+            Tags = tags;
 
 
         }
 
         public BlogDTO()
         {
-            
+
         }
     }
 }

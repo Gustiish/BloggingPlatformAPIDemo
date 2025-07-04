@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Http.HttpResults;
-using System.Reflection.Metadata.Ecma335;
 using StackExchange.Redis;
 
 namespace BloggingPlatformAPIDemo
@@ -37,7 +35,7 @@ namespace BloggingPlatformAPIDemo
                 try
                 {
                     BlogDTO newBlog = await req.ReadFromJsonAsync<BlogDTO>();
-                    var blog = BlogService.CreatePost(newBlog.Title, newBlog.Content);
+                    var blog = BlogService.CreatePost(newBlog.Title, newBlog.Content, newBlog.Tags);
                     return Results.Created($"/blog/{blog.Id}", blog);
                 }
                 catch
@@ -75,7 +73,7 @@ namespace BloggingPlatformAPIDemo
             app.MapPut("/blog", async (HttpRequest req) =>
             {
                 var idString = req.Query["id"];
-                if (int.TryParse(idString , out var id))
+                if (int.TryParse(idString, out var id))
                 {
                     var existingBlog = BlogService.FindPostById(id);
                     if (existingBlog == null)
@@ -121,12 +119,44 @@ namespace BloggingPlatformAPIDemo
                     BlogService.UpdatePost(existingBlog);
                     return Results.Ok(existingBlog);
 
-                    
+
                 }
                 else
                 {
                     return Results.NotFound("Blog not found");
                 }
+            });
+
+            app.MapGet("/posts", async (HttpRequest req) =>
+            {
+                var posts = BlogService.GetAll();
+                if (posts == null)
+                    return Results.NotFound();
+
+                try
+                {
+                    return Results.Ok(posts);
+                }
+                catch
+                {
+                    return Results.BadRequest();
+                }
+            });
+
+            app.MapGet("/post/tag", async (HttpRequest req) =>
+            {
+                string tag = req.Query["tag"];
+                if (tag == null)
+                {
+                    return Results.BadRequest();
+                }
+
+                var posts = BlogService.GetByTag(tag);
+                if (posts == null)
+                    return Results.NotFound();
+
+                return Results.Ok(posts);
+
             });
 
             //Redis test
@@ -143,9 +173,12 @@ namespace BloggingPlatformAPIDemo
             });
 
 
+
             app.Run();
 
 
         }
     }
 }
+
+
